@@ -69,7 +69,9 @@ pub struct RegisterCoinProposal {
     pub description: ::prost::alloc::string::String,
     /// metadata slice of the native Cosmos coins
     #[prost(message, repeated, tag = "3")]
-    pub metadata: ::prost::alloc::vec::Vec<super::super::super::bank::v1beta1::Metadata>,
+    pub metadata: ::prost::alloc::vec::Vec<
+        ::cosmos_sdk_proto::cosmos::bank::v1beta1::Metadata,
+    >,
 }
 impl ::prost::Name for RegisterCoinProposal {
     const NAME: &'static str = "RegisterCoinProposal";
@@ -88,7 +90,9 @@ impl ::prost::Name for RegisterCoinProposal {
 pub struct ProposalMetadata {
     /// metadata slice of the native Cosmos coins
     #[prost(message, repeated, tag = "1")]
-    pub metadata: ::prost::alloc::vec::Vec<super::super::super::bank::v1beta1::Metadata>,
+    pub metadata: ::prost::alloc::vec::Vec<
+        ::cosmos_sdk_proto::cosmos::bank::v1beta1::Metadata,
+    >,
 }
 impl ::prost::Name for ProposalMetadata {
     const NAME: &'static str = "ProposalMetadata";

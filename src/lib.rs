@@ -26,6 +26,11 @@ pub mod evm {
             include_proto!("cosmos.evm.vm.v1.rs");
         }
     }
+    pub mod erc20 {
+        pub mod v1 {
+            include_proto!("cosmos.evm.erc20.v1.rs");
+        }
+    }
     pub mod feemarket {
         pub mod v1 {
             include_proto!("cosmos.evm.feemarket.v1.rs");

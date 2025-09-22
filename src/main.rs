@@ -123,6 +123,7 @@ impl CompileCmd {
             .file_descriptor_set_path(out_dir.join("proto_descriptor.bin"))
             .extern_path(".google.protobuf", "::tendermint_proto::google::protobuf")
             .extern_path(".cosmos.base", "::cosmos_sdk_proto::cosmos::base")
+            .extern_path(".cosmos.bank", "::cosmos_sdk_proto::cosmos::bank")
             .extern_path(".tendermint", "::tendermint_proto")
             .compile_protos_with_config(config, &protos, &proto_includes_paths)?;
 
