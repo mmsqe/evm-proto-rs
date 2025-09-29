@@ -1541,9 +1541,7 @@ pub struct QueryTraceTxRequest {
     pub block_hash: ::prost::alloc::string::String,
     /// block_time of requested transaction
     #[prost(message, optional, tag = "7")]
-    pub block_time: ::core::option::Option<
-        ::tendermint_proto::google::protobuf::Timestamp,
-    >,
+    pub block_time: ::core::option::Option<::cosmos_sdk_proto::Timestamp>,
     /// proposer_address is the proposer of the requested block
     #[prost(bytes = "vec", tag = "8")]
     pub proposer_address: ::prost::alloc::vec::Vec<u8>,
@@ -1598,9 +1596,7 @@ pub struct QueryTraceBlockRequest {
     pub block_hash: ::prost::alloc::string::String,
     /// block_time of the traced block
     #[prost(message, optional, tag = "7")]
-    pub block_time: ::core::option::Option<
-        ::tendermint_proto::google::protobuf::Timestamp,
-    >,
+    pub block_time: ::core::option::Option<::cosmos_sdk_proto::Timestamp>,
     /// proposer_address is the address of the requested block
     #[prost(bytes = "vec", tag = "8")]
     pub proposer_address: ::prost::alloc::vec::Vec<u8>,

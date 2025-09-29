@@ -183,6 +183,7 @@ dependencies = [
  "serde",
  "similar",
  "subtle-encoding",
+ "tempfile",
  "tendermint-proto 0.38.1",
  "tonic",
  "tonic-build",

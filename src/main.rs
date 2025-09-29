@@ -31,6 +31,10 @@ pub struct CompileCmd {
     /// path to the Evm proto files
     evm: PathBuf,
 
+    #[argh(option, short = 'c')]
+    /// path to the Cosmos SDK proto files (optional)
+    cosmos_sdk: Option<PathBuf>,
+
     #[argh(option, short = 'o')]
     /// path to output the generated Rust sources into
     out: PathBuf,
@@ -41,6 +45,7 @@ impl CompileCmd {
         Self::compile_protos(
             self.transport,
             self.evm.as_ref(),
+            self.cosmos_sdk.as_deref(),
             self.out.as_ref(),
         )
         .unwrap_or_else(|e| {
@@ -61,9 +66,26 @@ impl CompileCmd {
         println!("[info ] Done!");
     }
 
+    fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<(), Box<dyn std::error::Error>> {
+        std::fs::create_dir_all(dst)?;
+        for entry in std::fs::read_dir(src)? {
+            let entry = entry?;
+            let src_path = entry.path();
+            let dst_path = dst.join(entry.file_name());
+            
+            if src_path.is_dir() {
+                Self::copy_dir_recursive(&src_path, &dst_path)?;
+            } else {
+                std::fs::copy(&src_path, &dst_path)?;
+            }
+        }
+        Ok(())
+    }
+
     fn compile_protos(
         transport: bool,
         evm_dir: &Path,
+        cosmos_sdk_dir: Option<&Path>,
         out_dir: &Path,
     ) -> Result<(), Box<dyn std::error::Error>> {
         println!(
@@ -71,14 +93,36 @@ impl CompileCmd {
             out_dir.display()
         );
 
-        // Paths
-        let proto_paths = [
-            evm_dir.join("cosmos/evm"),
-        ];
-
-        let proto_includes_paths = [
-            evm_dir.to_path_buf(),
-        ];
+        let (_temp_dir, proto_paths, proto_includes_paths) = if let Some(cosmos_sdk_dir) = cosmos_sdk_dir {
+            println!("[info ] Including Cosmos SDK proto files from '{}'", cosmos_sdk_dir.display());
+            
+            // Create a temporary directory to merge proto files without conflicts
+            let temp_dir = tempfile::tempdir()?;
+            let merged_proto_dir = temp_dir.path();
+            
+            // Copy cosmos SDK protos first
+            Self::copy_dir_recursive(cosmos_sdk_dir, merged_proto_dir)?;
+            
+            // Copy EVM protos, overwriting any conflicts (EVM takes priority for EVM-specific files)
+            let evm_cosmos_dir = evm_dir.join("cosmos");
+            if evm_cosmos_dir.exists() {
+                let target_cosmos_dir = merged_proto_dir.join("cosmos");
+                Self::copy_dir_recursive(&evm_cosmos_dir, &target_cosmos_dir)?;
+            }
+            
+            // Include the entire cosmos directory to find all proto files
+            let proto_paths = vec![merged_proto_dir.join("cosmos")];
+            
+            let proto_includes_paths = vec![merged_proto_dir.to_path_buf()];
+            
+            (Some(temp_dir), proto_paths, proto_includes_paths)
+        } else {
+            let proto_paths = vec![
+                evm_dir.join("cosmos"),
+            ];
+            let proto_includes_paths = vec![evm_dir.to_path_buf()];
+            (None, proto_paths, proto_includes_paths)
+        };
 
         // List available proto files
         let mut protos: Vec<PathBuf> = vec![];
@@ -121,7 +165,9 @@ impl CompileCmd {
             .server_mod_attribute(".", r#"#[cfg(feature = "server")]"#)
             .out_dir(out_dir)
             .file_descriptor_set_path(out_dir.join("proto_descriptor.bin"))
-            .extern_path(".google.protobuf", "::tendermint_proto::google::protobuf")
+            .extern_path(".google.protobuf.Any", "::cosmos_sdk_proto::Any")
+            .extern_path(".google.protobuf.Timestamp", "::cosmos_sdk_proto::Timestamp")
+            .extern_path(".google.protobuf.Duration", "::tendermint_proto::google::protobuf::Duration")
             .extern_path(".cosmos.base", "::cosmos_sdk_proto::cosmos::base")
             .extern_path(".cosmos.bank", "::cosmos_sdk_proto::cosmos::bank")
             .extern_path(".tendermint", "::tendermint_proto")
